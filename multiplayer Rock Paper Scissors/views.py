@@ -15,6 +15,7 @@ choices1 = []
 choices1ids = []
 choices2 = []
 choices2ids = []
+aborted = []
 
 @views.route('/')
 def home():
@@ -41,16 +42,35 @@ def startgameconfig():
     waiting = True
     return render_template('find.html', code = code)          #This peice of code puts the person in queue
 
-@views.route('/ingame/1/<findinggamecode>')
-def waitingsub(findinggamecode):
+@views.route('/ingame/1/<findinggamecode>/<timeremaining>')
+def waitingsub(findinggamecode, timeremaining):
     while waiting != False: #Nobody is here
         time.sleep(1)
         return render_template('find.html', code = findinggamecode)
-    return render_template('play1.html', findinggamecode = findinggamecode)
+    return render_template('play1.html', findinggamecode = findinggamecode, timeremaining = timeremaining)
 
-@views.route('/ingame/2/<lastcode>')
-def joiningsub(lastcode):
-    return render_template('play2.html', lastcode = lastcode)
+@views.route('/ingame/1/<findinggamecode>/<timeremaining>/count')
+def counting1(findinggamecode, timeremaining):
+    timeremaining = int(timeremaining) - 1
+    for item in aborted:
+        if item == findinggamecode:
+            return('index.html')
+    if timeremaining <= 0:
+        aborted.append(findinggamecode)
+        return render_template('index.html')
+    return render_template('play1.html', findinggamecode = findinggamecode, timeremaining = timeremaining)
+    
+
+@views.route('/ingame/2/<lastcode>/<timeremaining>')
+def joiningsub(lastcode, timeremaining):
+    timeremaining = int(timeremaining) - 1
+    for item in aborted:
+        if item == findinggamecode:
+            return render_template('index.html')
+    if timeremaining <= 0:
+        aborted.append(lastcode)
+        return render_template('index.html')
+    return render_template('play2.html', lastcode = lastcode, timeremaining = timeremaining)
 
 @views.route('/ingame/1/<lastcode>/playing/<onechoice>')
 def chosen1(lastcode, onechoice):    #THIS PEICE OF CODE IS FOR PLAYER 1
